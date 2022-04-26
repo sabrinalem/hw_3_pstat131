@@ -9,6 +9,12 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 
 titanic <-read.csv("titanic.csv")
+
+ti_survived <- factor(titanic$survived, levels = c("Yes", "No"))
+ti_class <- factor(titanic$pclass)
+titanic$survived <- ti_survived
+titanic$pclass <- ti_class
+
 library(tidyverse)
 library(tidymodels)
 library(discrim)
@@ -68,6 +74,7 @@ ggplot(data=surv_class_, aes(x=Class,y=Frequency, fill=Survived))+
 *Question 3*
 \
 ```{r}
+
 titanic_train_num <- titanic_train %>%
   select(where(is.numeric))
 #omit age due to missing values
@@ -76,12 +83,13 @@ cor_titanic_train <- titanic_train_num %>%
   correlate()
 rplot(cor_titanic_train)
 ```
-Visually we can see that the variables above the diagnol from the origin are negatively correlated, while the other half of the plot shows positive correlation.age and pclass are negatively correlated, age and sib_sp are negatively correlated, age and parch are negatively correlated, sib_sp and pclass are positively correlated, fare and pclass are negatively correlated, parch and sib_sp are positively correlated, fare and sib_sp are positively correlated, and fare and parch are positively correlated.
+Visually we can see that the variables above the diagonal from the origin are negatively correlated, while the other half of the plot shows positive correlation.Age and sib_sp are negatively correlated, age and parch are negatively correlated,, parch and sib_sp are positively correlated, fare and sib_sp are positively correlated, and fare and parch are positively correlated.
 \
 \
 *Question 4*
 \
 ```{r}
+
 titanic_recipe <- 
   recipe(survived~pclass+sex+age+sib_sp+parch+fare, data=titanic_train) %>%
   step_impute_linear(age)  %>%
@@ -197,7 +205,7 @@ results %>%
   arrange(-accuracies)
 ```
 The Logistic model performed the best on the training set, with the highest
-accuracy of .8106.
+accuracy of .8121.
 
 *Question 10*
 \
@@ -219,10 +227,10 @@ augment(log_fit, new_data = titanic_test) %>%
 ```{r}
 # ROC AND AUC
 augment(log_fit, new_data = titanic_test) %>%
-  roc_curve(factor(survived), .pred_No) %>%
+  roc_curve(titanic_test$survived, .pred_Yes) %>%
   autoplot()
 area <- augment(log_fit, new_data = titanic_test) %>%
-  roc_auc(factor(survived), .pred_No)
+  roc_auc(titanic_test$survived, .pred_Yes)
 area
 ```
 The accuracy is greater on the test data, so the model is not a good fit. 
